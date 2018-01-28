@@ -1,0 +1,55 @@
+# LOAD BALANCER
+resource "azurerm_lb" "lb01" {
+  name                = "ranchersrv-lb"
+  location            = "${var.location}"
+  resource_group_name = "${azurerm_resource_group.SGS-PoC.name}"
+  depends_on          = ["azurerm_public_ip.devpubips"]
+
+  frontend_ip_configuration {
+    name                 = "ranchersrv-sshIPCfg"
+    public_ip_address_id = "${azurerm_public_ip.devpubips.id}"
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "backend_pool" {
+  resource_group_name = "${azurerm_resource_group.SGS-PoC.name}"
+  loadbalancer_id     = "${azurerm_lb.lb01.id}"
+  name                = "ranchersrv-ilbBackendPool"
+}
+
+# LOAD BALANCER INBOUND NAT RULES
+resource "azurerm_lb_nat_rule" "NatRule0" {
+  name                           = "ranchersrv-NatRule-${count.index}"
+  resource_group_name            = "${azurerm_resource_group.SGS-PoC.name}"
+  loadbalancer_id                = "${azurerm_lb.lb01.id}"
+  protocol                       = "tcp"
+  frontend_port                  = "2200${count.index + 1}"
+  backend_port                   = 22
+  frontend_ip_configuration_name = "ranchersrv-sshIPCfg"
+  count                          = "${var.srv_count}"
+  depends_on                     = ["azurerm_lb.lb01"]
+}
+
+resource "azurerm_lb_nat_rule" "MySQLNatRule0" {
+  name                           = "ranchersrv-MySQLNatRule-${count.index}"
+  resource_group_name            = "${azurerm_resource_group.SGS-PoC.name}"
+  loadbalancer_id                = "${azurerm_lb.lb01.id}"
+  protocol                       = "tcp"
+  frontend_port                  = "330${count.index + 6}"
+  backend_port                   = 3306
+  frontend_ip_configuration_name = "ranchersrv-sshIPCfg"
+  count                          = "${var.srv_count}"
+  depends_on                     = ["azurerm_lb.lb01"]
+}
+
+resource "azurerm_lb_nat_rule" "ProbeNatRule0" {
+  name                           = "ranchersrv-ProbeNatRule-${count.index}"
+  resource_group_name            = "${azurerm_resource_group.SGS-PoC.name}"
+  loadbalancer_id                = "${azurerm_lb.lb01.id}"
+  protocol                       = "tcp"
+  frontend_port                  = "920${count.index}"
+  backend_port                   = 9200
+  frontend_ip_configuration_name = "ranchersrv-sshIPCfg"
+  count                          = "${var.srv_count}"
+  depends_on                     = ["azurerm_lb.lb01"]
+}
