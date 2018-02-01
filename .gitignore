@@ -1,2 +1,3 @@
 01-variables.tf
 .terraform
+terraform*
