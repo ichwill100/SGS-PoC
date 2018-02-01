@@ -1,6 +1,6 @@
 # Create Network Security Group and rule
-resource "azurerm_network_security_group" "sngular-access" {
-    name                = "sngular-access"
+resource "azurerm_network_security_group" "sngular" {
+    name                = "sngular"
     location            = "${var.location}"
     resource_group_name = "${azurerm_resource_group.SGS-PoC.name}"
 
